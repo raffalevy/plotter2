@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-  entry: './client/public/plotter2.ts',
+  entry: './client/public/plotter2.tsx',
   module: {
     rules: [
       {

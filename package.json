@@ -1,9 +1,9 @@
 {
   "name": "plotter2",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node app.js",
     "build": "node node_modules/webpack/bin/webpack.js",
     "watch": "node node_modules/webpack/bin/webpack.js --watch"
   },

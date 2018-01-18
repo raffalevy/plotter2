@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Component } from 'react';
 
 import { CoordinateSystem } from './CoordinateSystem';
-import { Axes, Point, POINT_RADIUS } from './PlotterComponents';
+import { Axes, Point, POINT_RADIUS, ParametricFunction, ParametricFunctionProps } from './PlotterComponents';
 
 /**
  * The default plotter width
@@ -64,7 +64,9 @@ export class Plotter extends Component<PlotterProps> {
         // Create an object holding the style for the canvas
         const canvasStyle: any = {
             width,
-            height
+            height,
+            cursor: 'none',
+            'background-color': '#FFFFFF'
         };
 
         // Add a border to the style if border is set to true in the props
@@ -76,7 +78,8 @@ export class Plotter extends Component<PlotterProps> {
             ref={(canvasRef) => { this.canvas = canvasRef }}
             width={width * CANVAS_RESOLUTION_FACTOR}
             height={height * CANVAS_RESOLUTION_FACTOR}
-            style={canvasStyle}>
+            style={canvasStyle}
+            onMouseMove={this.onMouseMove.bind(this)}>
             Canvas not supported.
         </canvas>
     }
@@ -108,6 +111,7 @@ export class Plotter extends Component<PlotterProps> {
         const ctx = this.context;
         const cs = this.coordinateSystem;
 
+        // Save the current drawing settings
         ctx.save();
 
         // Scale the rendering context according to the resolution
@@ -128,9 +132,14 @@ export class Plotter extends Component<PlotterProps> {
                     const pointChild = (child as any) as Point;
                     this_.plotPoint(pointChild.props.x, pointChild.props.y);
                     break;
+                case ParametricFunction:
+                    const pChild = (child as any) as ParametricFunction;
+                    this_.drawParametricFunction(pChild.props);
+                    break;
             }
         });
 
+        // Restore the saved drawing settings
         ctx.restore();
     }
 
@@ -163,6 +172,11 @@ export class Plotter extends Component<PlotterProps> {
         ctx.restore();
     }
 
+    /**
+     * Plots a point on the graph
+     * @param x The x coordinate of the point
+     * @param y The y coordinate of the point
+     */
     plotPoint(x: number, y: number) {
         const ctx = this.context;
         const cs = this.coordinateSystem;
@@ -170,6 +184,45 @@ export class Plotter extends Component<PlotterProps> {
         ctx.beginPath();
         ctx.arc(cs.x(x), cs.y(y), POINT_RADIUS, 0, 2*Math.PI);
         ctx.fill();
+    }
+
+    /**
+     * Plot a parametric function with the given properties.
+     */
+    drawParametricFunction(pProps : ParametricFunctionProps) {
+
+        // Make sure the properties are valid
+        if (pProps.stepSize == 0 || pProps.start >= pProps.end) {
+            return;
+        }
+
+        const ctx = this.context;
+        const cs = this.coordinateSystem;
+
+        const func = pProps.func;
+
+        ctx.beginPath();
+
+        let t = pProps.start;
+
+        ctx.moveTo(cs.x(func(t).x), cs.y(func(t).y));
+
+        while (t < pProps.end) {
+            ctx.lineTo(cs.x(func(t).x), cs.y(func(t).y));
+            t = t + pProps.stepSize;
+        }
+
+        ctx.lineTo(cs.x(func(pProps.end).x), cs.y(func(pProps.end).y));
+        ctx.stroke();
+    }
+
+    /**
+     * Handle mouse move events
+     */
+    onMouseMove(event: MouseEvent) {
+        const cs = this.coordinateSystem;
+
+        this.props.onMouseMove(cs.plotX(event.clientX), cs.plotY(event.clientY));
     }
 }
 
@@ -196,4 +249,14 @@ export interface PlotterProps {
      * Whether a border should be visible
      */
     border?: boolean
+
+    /**
+     * Called when the mouse is moved within the plotter. X and y are in plot coordinates.
+     */
+    onMouseMove?: (x : number, y: number) => void
+}
+
+export interface Point2D {
+    x: number
+    y: number
 }
