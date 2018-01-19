@@ -55,7 +55,7 @@ export class Plotter extends Component<PlotterProps> {
     }
 
     /**
-     * Render the plotter
+     * Render the plotter to the DOM
      */
     render() {
         const width = this.props.width || DEFAULT_WIDTH;
@@ -66,7 +66,7 @@ export class Plotter extends Component<PlotterProps> {
             width,
             height,
             cursor: 'none',
-            'background-color': '#FFFFFF'
+            backgroundColor: '#FFFFFF'
         };
 
         // Add a border to the style if border is set to true in the props
@@ -81,23 +81,33 @@ export class Plotter extends Component<PlotterProps> {
             style={canvasStyle}
             onMouseMove={this.onMouseMove.bind(this)}
             onClick={this.onClick.bind(this)}
-            onMouseLeave={() => this.props.onMouseLeave(this.coordinateSystem)}>
+            onMouseLeave={this.onMouseLeave.bind(this)}>
             Canvas not supported.
         </canvas>
     }
 
+    /**
+     * Called when the component is mounted to the DOM
+     */
     componentDidMount() {
         this.context = this.canvas.getContext('2d');
 
         this.draw();
     }
 
+    /**
+     * Called after the component is updated (i.e by changing props)
+     */
     componentDidUpdate() {
         this.context = this.canvas.getContext('2d');
 
         this.draw();
     }
 
+    /**
+     * Called when the props are going to be changed
+     * @param nextProps The new props
+     */
     componentWillReceiveProps(nextProps: PlotterProps) {
         if (nextProps.width != this.props.width
             || nextProps.height != this.props.height
@@ -223,17 +233,30 @@ export class Plotter extends Component<PlotterProps> {
 
     /**
      * Handle mouse move events
+     * @param event The mouse move event
      */
     onMouseMove(event: MouseEvent) {
         const cs = this.coordinateSystem;
         
-        if (this.props.onMouseMove) this.props.onMouseMove(cs.plotX(event.clientX - this.canvas.offsetLeft), cs.plotY(event.clientY - this.canvas.offsetTop), cs);
+        if (this.props.onMouseMove) this.props.onMouseMove(cs.plotX(event.pageX - this.canvas.offsetLeft), cs.plotY(event.pageY - this.canvas.offsetTop), cs);
     }
 
+    /**
+     * Handle click events
+     * @param event The click event
+     */
     onClick(event: MouseEvent) {
         const cs = this.coordinateSystem;
         
-        if (this.props.onClick) this.props.onClick(cs.plotX(event.clientX - this.canvas.offsetLeft), cs.plotY(event.clientY - this.canvas.offsetTop), cs);
+        if (this.props.onClick) this.props.onClick(cs.plotX(event.pageX - this.canvas.offsetLeft), cs.plotY(event.pageY - this.canvas.offsetTop), cs);
+    }
+
+    /**
+     * Handle when the mouse leaves the plotter
+     * @param event The mouse event
+     */
+    onMouseLeave(event: MouseEvent) {
+        if (this.props.onMouseLeave) this.props.onMouseLeave(this.coordinateSystem);
     }
 }
 
@@ -277,7 +300,17 @@ export interface PlotterProps {
     onMouseLeave?: (cs: CoordinateSystem) => void
 }
 
+/**
+ * Represents a point on the 2D plane
+ */
 export interface Point2D {
+    /**
+     * The x coordinate of the point
+     */
     x: number
+
+    /**
+     * The y coordinate of the point
+     */
     y: number
 }

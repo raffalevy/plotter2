@@ -23,8 +23,8 @@ export class R extends Component {
     render() {
         return (
             <span style={{
-                'border-bottom': '1px dashed #999',
-                'color': '#0000FF'
+                borderBottom: '1px dashed #999',
+                color: '#0000FF'
             }}>{this.props.children}</span>
         );
     }

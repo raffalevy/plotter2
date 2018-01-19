@@ -1,10 +1,19 @@
 import * as React from 'react';
 import { Component } from 'react';
 
+/**
+ * A form field for entering numbers
+ */
 export class NumericalControl extends React.Component<NumericalControlProps> {
 
-    lastValue: string = '';
+    /**
+     * The last string contained in the text box
+     */
+    private lastValue: string = '';
 
+    /**
+     * Render the NumericalControl to the DOM
+     */
     render() {
 
         let inputValue;
@@ -20,16 +29,27 @@ export class NumericalControl extends React.Component<NumericalControlProps> {
         )
     }
 
+    /**
+     * Handle input events to the text box
+     * @param event The input event
+     */
     onChange(event: Event) {
+        // Get the value of the text input
         const value = (event.target as HTMLInputElement).value
+
+        // Update the stored last value
         this.lastValue = value;
+
+        // Parse the value as a number
         const parsedValue = parseFloat(value);
 
+        // Handle a trailing decimal point
         if (value.charAt(value.length - 1) == '.') {
             this.props.onChange(NaN);
             return;
         }
 
+        // Check if the number could be parsed
         if (!isNaN(parsedValue)) {
             if (this.props.allowNegative == false && parsedValue < 0) {
                 return;
@@ -44,19 +64,42 @@ export class NumericalControl extends React.Component<NumericalControlProps> {
     }
 }
 
+/**
+ * Props for the NumericalControl component
+ */
 export interface NumericalControlProps {
+    /**
+     * The value of the input
+     */
     value: number
+
+    /**
+     * Called when the input value is changed
+     */
     onChange: (value: number) => void
+
+    /**
+     * Whether to allow negative values
+     */
     allowNegative?: boolean
 }
 
+/**
+ * A component for selecting a tool for the Plotter
+ */
 export class ToolSelector extends Component<ToolSelectorProps> {
+
+    /**
+     * Render the ToolSelector to the DOM
+     */
     render() {
 
+        // Style for the selected tool button
         const selectedStyle = {
             border: '2px solid red'
         }
 
+        // Get the current selected tool
         const sel = this.props.tool;
 
         return (
@@ -71,11 +114,24 @@ export class ToolSelector extends Component<ToolSelectorProps> {
     }
 }
 
+/**
+ * Props for the ToolSelector component
+ */
 export interface ToolSelectorProps {
+    /**
+     * Called when a tool is selected
+     */
     onToolChosen: (tool: Tool) => void
+
+    /**
+     * The current selected tool
+     */
     tool: Tool
 }
 
+/**
+ * Represents a selectable tool
+ */
 export enum Tool {
     Point,
     Remove
