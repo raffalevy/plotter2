@@ -51,20 +51,26 @@ export interface ParametricFunctionProps {
     /**
      * The parametric function; takes in a number and returns a 2D point.
      */
-    func : (t: number) => Point2D
+    func: (t: number) => Point2D
 
     /**
      * The value of t at which to start plotting
      */
-    start : number
+    start: number
 
     /**
      * The value of t at which to stop plotting
      */
-    end : number
+    end: number
 
     /**
      * The size of each step in the plot
      */
-    stepSize : number
+    stepSize: number
+}
+
+export class Custom extends Component<CustomProps> { }
+
+export interface CustomProps {
+    draw: (ctx: CanvasRenderingContext2D, cs: CoordinateSystem) => void
 }

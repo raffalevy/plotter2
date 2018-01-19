@@ -49,3 +49,34 @@ export interface NumericalControlProps {
     onChange: (value: number) => void
     allowNegative?: boolean
 }
+
+export class ToolSelector extends Component<ToolSelectorProps> {
+    render() {
+
+        const selectedStyle = {
+            border: '2px solid red'
+        }
+
+        const sel = this.props.tool;
+
+        return (
+            <div>
+                <p>Tools:</p>
+                <p>
+                    <button onClick={() => this.props.onToolChosen(Tool.Point)} style={sel == Tool.Point ? selectedStyle : {}}>Point</button>
+                    <button onClick={() => this.props.onToolChosen(Tool.Remove)} style={sel == Tool.Remove ? selectedStyle : {}}>Remove</button>
+                </p>
+            </div>
+        )
+    }
+}
+
+export interface ToolSelectorProps {
+    onToolChosen: (tool: Tool) => void
+    tool: Tool
+}
+
+export enum Tool {
+    Point,
+    Remove
+}

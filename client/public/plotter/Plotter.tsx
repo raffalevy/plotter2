@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Component } from 'react';
 
 import { CoordinateSystem } from './CoordinateSystem';
-import { Axes, Point, POINT_RADIUS, ParametricFunction, ParametricFunctionProps } from './PlotterComponents';
+import { Axes, Point, POINT_RADIUS, ParametricFunction, ParametricFunctionProps, Custom } from './PlotterComponents';
 
 /**
  * The default plotter width
@@ -79,7 +79,9 @@ export class Plotter extends Component<PlotterProps> {
             width={width * CANVAS_RESOLUTION_FACTOR}
             height={height * CANVAS_RESOLUTION_FACTOR}
             style={canvasStyle}
-            onMouseMove={this.onMouseMove.bind(this)}>
+            onMouseMove={this.onMouseMove.bind(this)}
+            onClick={this.onClick.bind(this)}
+            onMouseLeave={() => this.props.onMouseLeave(this.coordinateSystem)}>
             Canvas not supported.
         </canvas>
     }
@@ -136,6 +138,9 @@ export class Plotter extends Component<PlotterProps> {
                     const pChild = (child as any) as ParametricFunction;
                     this_.drawParametricFunction(pChild.props);
                     break;
+                case Custom:
+                    const cChild = (child as any) as Custom;
+                    cChild.props.draw(this.context, this.coordinateSystem);
             }
         });
 
@@ -221,8 +226,14 @@ export class Plotter extends Component<PlotterProps> {
      */
     onMouseMove(event: MouseEvent) {
         const cs = this.coordinateSystem;
+        
+        if (this.props.onMouseMove) this.props.onMouseMove(cs.plotX(event.clientX - this.canvas.offsetLeft), cs.plotY(event.clientY - this.canvas.offsetTop), cs);
+    }
 
-        this.props.onMouseMove(cs.plotX(event.clientX), cs.plotY(event.clientY));
+    onClick(event: MouseEvent) {
+        const cs = this.coordinateSystem;
+        
+        if (this.props.onClick) this.props.onClick(cs.plotX(event.clientX - this.canvas.offsetLeft), cs.plotY(event.clientY - this.canvas.offsetTop), cs);
     }
 }
 
@@ -253,7 +264,17 @@ export interface PlotterProps {
     /**
      * Called when the mouse is moved within the plotter. X and y are in plot coordinates.
      */
-    onMouseMove?: (x : number, y: number) => void
+    onMouseMove?: (x : number, y: number, cs: CoordinateSystem) => void
+
+    /**
+     * Called when the user clicks within the plotter. X and y are in plot coordinates.
+     */
+    onClick?: (x: number, y: number, cs: CoordinateSystem) => void
+
+    /**
+     * Called when the mouse leaves the plotter.
+     */
+    onMouseLeave?: (cs: CoordinateSystem) => void
 }
 
 export interface Point2D {

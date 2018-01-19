@@ -65,6 +65,13 @@ export class CoordinateSystem {
     }
 
     /**
+     * Inverse of the scale method
+     */
+    invScale(screenDimension: number) {
+        return screenDimension / this.unit;
+    }
+
+    /**
      * Convert from x in screen coordinates to plot coordinates
      */
     plotX(screenX: number) : number {
