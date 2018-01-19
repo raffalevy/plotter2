@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { Component } from 'react';
 
+import * as mathjs from 'mathjs';
+
 /**
  * A form field for entering numbers
  */
@@ -135,4 +137,78 @@ export interface ToolSelectorProps {
 export enum Tool {
     Point,
     Remove
+}
+
+/**
+ * An input for functions
+ */
+export class FunctionInput extends Component<FunctionInputProps, FunctionInputState> {
+
+    /**
+     * Create a new FunctionInput component
+     */
+    constructor(props: FunctionInputProps) {
+        super(props);
+
+        this.state = {
+            value: ''
+        }
+    }
+
+    /**
+     * Render the FunctionInput to the DOM
+     */
+    render() {
+        return (
+            <input type='text' value={this.state.value} onInput={this.onValueChange.bind(this)} />
+        )
+    }
+
+    /**
+     * Called when the value of the text input is changed
+     */
+    onValueChange(event: Event) {
+        // Get the value of the text input
+        const value = (event.target as HTMLInputElement).value;
+
+        // Handle parsing and arithmetic errors
+        try {
+            // Parse the field value
+            const compiled = mathjs.compile(value);
+
+            // Test the function so errors can be caught
+            compiled.eval({ x: 0 });
+
+            // Return the function
+            this.props.onFunctionChange((x) => {
+                return compiled.eval({ x });
+            });
+        } catch (e) {
+            // If there's an error, don't return a function.
+            this.props.onFunctionChange(null);
+        }
+
+        // Update the state for the new field value
+        this.setState({ value });
+    }
+}
+
+/**
+ * Props for the FunctionInput
+ */
+export interface FunctionInputProps {
+    /**
+     * Called when the function is changed
+     */
+    onFunctionChange: (func: (x: number) => number) => void
+}
+
+/**
+ * State for the FunctionInput
+ */
+export interface FunctionInputState {
+    /**
+     * The value of the text input
+     */
+    value: string
 }

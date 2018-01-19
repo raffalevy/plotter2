@@ -37,6 +37,11 @@ export interface PointProps {
      * The y, in plot coordinates, of the point
      */
     y: number
+
+    /**
+     * The hex color of the point
+     */
+    color?: string
 }
 
 /**
@@ -69,8 +74,33 @@ export interface ParametricFunctionProps {
     stepSize: number
 }
 
+/**
+ * Renders a custom drawing within a Plotter component
+ */
 export class Custom extends Component<CustomProps> { }
 
+/**
+ * Props for the Custom component
+ */
 export interface CustomProps {
+
+    /**
+     * Custom drawing method
+     */
     draw: (ctx: CanvasRenderingContext2D, cs: CoordinateSystem) => void
+}
+
+/**
+ * Renders a 2d function within a Plotter component
+ */
+export class Function extends Component<FunctionProps> { }
+
+/**
+ * Props for the Function component
+ */
+export interface FunctionProps {
+    /**
+     * The function to draw
+     */
+    func: (x: number) => number
 }

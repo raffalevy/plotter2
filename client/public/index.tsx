@@ -3,8 +3,9 @@ import * as ReactDOM from 'react-dom';
 
 import { Plotter, Point2D } from './plotter/Plotter';
 import { Axes, Point, ParametricFunction, Custom, POINT_RADIUS } from './plotter/PlotterComponents';
+import * as PlotterComponents from './plotter/PlotterComponents';
 import { R } from './plotter2';
-import { NumericalControl, ToolSelector, Tool } from './Components';
+import { NumericalControl, ToolSelector, Tool, FunctionInput } from './Components';
 import { CoordinateSystem } from './plotter/CoordinateSystem';
 
 /**
@@ -24,6 +25,11 @@ const RIGHT_TD_STYLE = {
     padding: '10px',
     backgroundColor: '#EEEEEE'
 }
+
+/**
+ * How tolerant the remove tool is
+ */
+const REMOVE_TOLERANCE = 3;
 
 /**
  * Entry point for index.html
@@ -54,7 +60,8 @@ class Index extends React.Component<IndexProps, IndexState> {
             unit: 20,
             tool: Tool.Point,
             points: [],
-            mouseIn: false
+            mouseIn: false,
+            func: null
         }
     }
 
@@ -64,7 +71,7 @@ class Index extends React.Component<IndexProps, IndexState> {
     render() {
 
         // Construct an array of points which should be rendered based upon the points array in the state
-        const pointsToRender = this.state.points.map(point => <Point x={point.x} y={point.y} />);
+        const pointsToRender = this.state.points.map(point => <Point x={point.x} y={point.y} color={point.color} />);
 
         // Render a plotter
         return (
@@ -79,9 +86,11 @@ class Index extends React.Component<IndexProps, IndexState> {
                             onClick={this.onClick.bind(this)}
                             onMouseLeave={this.onMouseLeave.bind(this)}>
                             <Axes />
-                            <ParametricFunction func={t => ({ x: Math.cos(t) * t * this.state.xa, y: Math.sin(t) * t * this.state.ya })} start={0} end={5 * Math.PI} stepSize={0.1} />
                             {pointsToRender}
                             <Custom draw={this.drawCursor.bind(this)} />
+                            {this.state.func ?
+                                <PlotterComponents.Function func={this.state.func} /> :
+                                false}
                         </Plotter>
                     </p>
                 </td>
@@ -113,6 +122,15 @@ class Index extends React.Component<IndexProps, IndexState> {
                     <p>
                         <button onClick={this.onClearAllPoints.bind(this)}>Clear all points</button>
                     </p>
+                    <hr />
+                    <p>
+                        Plot function:
+                    </p>
+                    <p>
+                        f(x) = <FunctionInput onFunctionChange={(func) => {
+                            this.setState({ func });
+                        }} />
+                    </p>
                 </td>
             </tr></tbody></table>
         );
@@ -124,8 +142,32 @@ class Index extends React.Component<IndexProps, IndexState> {
      * @param x The x coordinate the mouse is moved to
      * @param y The y coordinate the mouse is moved to
      */
-    onMouseMove(x: number, y: number) {
-        this.setState({ xa: x, ya: y, mouseIn: true });
+    onMouseMove(x: number, y: number, cs: CoordinateSystem) {
+        if (this.state.tool == Tool.Remove && this.state.points.length > 0) {
+
+            let closest: Point2DWithColor;
+            if (this.state.points.length > 0) {
+                closest = this.state.points.reduce((a, b) => {
+                    const aDist = Math.sqrt((a.x - x) ** 2 + (a.y - y) ** 2);
+                    const bDist = Math.sqrt((b.x - x) ** 2 + (b.y - y) ** 2);
+                    return (aDist <= bDist) ? a : b;
+                });
+            }
+
+            const closestIndex = this.state.points.indexOf(closest);
+
+            const arrayCopy = this.state.points.slice();
+
+            arrayCopy.forEach(point => point.color = '#000000');
+
+            if (cs.scale(Math.sqrt((closest.x - x) ** 2 + (closest.y - y) ** 2)) <= POINT_RADIUS * REMOVE_TOLERANCE) {
+                arrayCopy[closestIndex] = { x: closest.x, y: closest.y, color: '#0000FF' }
+            }
+
+            this.setState({ xa: x, ya: y, mouseIn: true, points: arrayCopy });
+        } else {
+            this.setState({ xa: x, ya: y, mouseIn: true });
+        }
     }
 
     /**
@@ -163,14 +205,14 @@ class Index extends React.Component<IndexProps, IndexState> {
         switch (this.state.tool) {
             case Tool.Point:
                 // If the point tool is selected, add a point at the location of the click
-                this.setState({ points: this.state.points.concat({ x, y }) });
+                this.setState({ points: this.state.points.concat({ x, y, color: '#000000' }) });
                 break;
             case Tool.Remove:
                 // If the remove tool is selected and a point is clicked, remove that point
                 for (let i = 0; i < this.state.points.length; i++) {
                     const point = this.state.points[i];
                     const dist = Math.sqrt((point.x - x) ** 2 + (point.y - y) ** 2)
-                    if (dist < cs.invScale(POINT_RADIUS) * 2) {
+                    if (dist < cs.invScale(POINT_RADIUS) * REMOVE_TOLERANCE) {
                         const pointsCopy = this.state.points.slice();
                         pointsCopy.splice(i, 1);
                         this.setState({ points: pointsCopy });
@@ -272,10 +314,26 @@ interface IndexState {
     /**
      * The points to be drawn
      */
-    points: Point2D[]
+    points: Point2DWithColor[]
 
     /**
      * Whether the mouse is in the Plotter
      */
     mouseIn: boolean;
+
+    /**
+     * The function being rendered
+     */
+    func: (x: number) => number
+}
+
+/**
+ * A 2d point with a color
+ */
+interface Point2DWithColor extends Point2D {
+
+    /**
+     * The color of the point
+     */
+    color: string
 }

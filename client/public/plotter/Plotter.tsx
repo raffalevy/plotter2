@@ -3,6 +3,7 @@ import { Component } from 'react';
 
 import { CoordinateSystem } from './CoordinateSystem';
 import { Axes, Point, POINT_RADIUS, ParametricFunction, ParametricFunctionProps, Custom } from './PlotterComponents';
+import * as PlotterComponents from './PlotterComponents';
 
 /**
  * The default plotter width
@@ -136,21 +137,35 @@ export class Plotter extends Component<PlotterProps> {
 
         // Render each of this component's children, if they are supported sub-components.
         React.Children.forEach(this.props.children, (child) => {
-            switch ((child as any).type) {
-                case Axes:
-                    this_.drawAxes();
-                    break;
-                case Point:
-                    const pointChild = (child as any) as Point;
-                    this_.plotPoint(pointChild.props.x, pointChild.props.y);
-                    break;
-                case ParametricFunction:
-                    const pChild = (child as any) as ParametricFunction;
-                    this_.drawParametricFunction(pChild.props);
-                    break;
-                case Custom:
-                    const cChild = (child as any) as Custom;
-                    cChild.props.draw(this.context, this.coordinateSystem);
+            if (child) {
+                switch ((child as any).type) {
+                    case Axes:
+                        this_.drawAxes();
+                        break;
+                    case Point:
+                        const pointChild = (child as any) as Point;
+                        if (pointChild.props.color) {
+                            ctx.save();
+                            ctx.fillStyle = pointChild.props.color;
+                        }
+                        this_.plotPoint(pointChild.props.x, pointChild.props.y);
+                        if (pointChild.props.color) {
+                            ctx.restore();
+                        }
+                        break;
+                    case ParametricFunction:
+                        const pChild = (child as any) as ParametricFunction;
+                        this_.drawParametricFunction(pChild.props);
+                        break;
+                    case Custom:
+                        const cChild = (child as any) as Custom;
+                        cChild.props.draw(this_.context, this_.coordinateSystem);
+                        break;
+                    case PlotterComponents.Function:
+                        const fChild = (child as any) as PlotterComponents.Function;
+                        this_.drawFunction(fChild.props.func);
+                        break;
+                }
             }
         });
 
@@ -197,14 +212,14 @@ export class Plotter extends Component<PlotterProps> {
         const cs = this.coordinateSystem;
 
         ctx.beginPath();
-        ctx.arc(cs.x(x), cs.y(y), POINT_RADIUS, 0, 2*Math.PI);
+        ctx.arc(cs.x(x), cs.y(y), POINT_RADIUS, 0, 2 * Math.PI);
         ctx.fill();
     }
 
     /**
      * Plot a parametric function with the given properties.
      */
-    drawParametricFunction(pProps : ParametricFunctionProps) {
+    drawParametricFunction(pProps: ParametricFunctionProps) {
 
         // Make sure the properties are valid
         if (pProps.stepSize == 0 || pProps.start >= pProps.end) {
@@ -232,12 +247,35 @@ export class Plotter extends Component<PlotterProps> {
     }
 
     /**
+     * Draw a function
+     * @param func The function to draw
+     */
+    drawFunction(func: (x: number) => number) {
+        const cs = this.coordinateSystem;
+        const ctx = this.context;
+
+        const startX = cs.plotX(0);
+        const endX = cs.plotX(this.props.width || DEFAULT_WIDTH);
+        
+        ctx.beginPath();
+
+        let x = startX;
+        ctx.moveTo(cs.x(x), cs.y(func(x)));
+        while (x <= endX) {
+            ctx.lineTo(cs.x(x), cs.y(func(x)));
+            x = x + cs.invScale(1);
+        }
+
+        ctx.stroke();
+    }
+
+    /**
      * Handle mouse move events
      * @param event The mouse move event
      */
     onMouseMove(event: MouseEvent) {
         const cs = this.coordinateSystem;
-        
+
         if (this.props.onMouseMove) this.props.onMouseMove(cs.plotX(event.pageX - this.canvas.offsetLeft), cs.plotY(event.pageY - this.canvas.offsetTop), cs);
     }
 
@@ -247,7 +285,7 @@ export class Plotter extends Component<PlotterProps> {
      */
     onClick(event: MouseEvent) {
         const cs = this.coordinateSystem;
-        
+
         if (this.props.onClick) this.props.onClick(cs.plotX(event.pageX - this.canvas.offsetLeft), cs.plotY(event.pageY - this.canvas.offsetTop), cs);
     }
 
@@ -287,7 +325,7 @@ export interface PlotterProps {
     /**
      * Called when the mouse is moved within the plotter. X and y are in plot coordinates.
      */
-    onMouseMove?: (x : number, y: number, cs: CoordinateSystem) => void
+    onMouseMove?: (x: number, y: number, cs: CoordinateSystem) => void
 
     /**
      * Called when the user clicks within the plotter. X and y are in plot coordinates.
