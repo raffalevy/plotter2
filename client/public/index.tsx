@@ -19,6 +19,24 @@ import { VectorFieldSelector, VectorField2D, VectorField } from './vectorFields/
  */
 const REMOVE_TOLERANCE = 3;
 
+const DEFAULT_STATE : IndexState = {
+    xa: 0,
+    ya: 0,
+    width: 500,
+    height: 500,
+    unit: 20,
+    centerX: 0,
+    centerY: 0,
+    tool: Tool.Point,
+    points: [],
+    mouseIn: false,
+    func: null,
+    functionInputValue: '',
+    selectedVectorFieldName: '',
+    selectedVectorField: null,
+    lengthFactor: 0
+}
+
 /**
  * Entry point for index.html
  */
@@ -39,22 +57,22 @@ class Index extends React.Component<IndexProps, IndexState> {
     constructor(props: IndexProps) {
         super(props);
 
-        // Set the inital state values
-        this.state = {
-            xa: 0,
-            ya: 0,
-            width: 500,
-            height: 500,
-            unit: 20,
-            centerX: 0,
-            centerY: 0,
-            tool: Tool.Point,
-            points: [],
-            mouseIn: false,
-            func: null,
-            selectedVectorFieldName: '',
-            selectedVectorField: null,
-            lengthFactor: 0
+        const localState = localStorage.getItem('indexState');
+        if (localStorage.getItem('indexState')) {
+            try {
+                const localStateParsed = JSON.parse(localState);
+                Object.keys(DEFAULT_STATE).forEach((key) => {
+                    if (!localStateParsed.hasOwnProperty(key)) {
+                        localStateParsed[key] = (DEFAULT_STATE as any)[key];
+                    }
+                });
+                this.state = localStateParsed;
+            } catch (e) {
+                this.state = DEFAULT_STATE;
+            }
+        } else {
+            // Set the inital state values
+            this.state = DEFAULT_STATE;
         }
     }
 
@@ -64,15 +82,14 @@ class Index extends React.Component<IndexProps, IndexState> {
     render() {
 
         // Construct an array of points which should be rendered based upon the points array in the state
-        const pointsToRender = this.state.points.map(point => <Point x={point.x} y={point.y} color={point.color} />);
+        const pointsToRender = this.state.points.map(point => <Point key={point.x + ',' + point.y} x={point.x} y={point.y} color={point.color} />);
 
         // Render a plotter
         return (
             <React.Fragment>
                 <nav><span className='navText'>Plotter2</span></nav>
-                <div id='main'><table><tbody>
-                    <tr>
-                        <td className='left'>
+                <div id='main' className='row'>
+                        <div className='card column left'>
                             <p>
                                 <Plotter
                                     width={this.state.width} height={this.state.height}
@@ -97,8 +114,8 @@ class Index extends React.Component<IndexProps, IndexState> {
                                     <Custom draw={this.drawCursor.bind(this)} />
                                 </Plotter>
                             </p>
-                        </td>
-                        <td className='center'>
+                        </div>
+                        <div className='card column center'>
                             <p>
                                 Height: <NumericalControl value={this.state.height}
                                     allowNegative={false}
@@ -138,32 +155,39 @@ class Index extends React.Component<IndexProps, IndexState> {
                             <hr />
                             <p>
                                 <button onClick={this.onClearAllPoints.bind(this)}>CLEAR ALL POINTS</button>
+                                <button onClick={() => {
+                                    this.setState(DEFAULT_STATE);
+                                }}>RESET ALL</button>
                             </p>
                             <hr />
                             <p>
                                 Plot function:
                             </p>
                             <p>
-                                f(x) = <FunctionInput onFunctionChange={(func) => {
-                                    this.setState({ func });
-                                }} placeholder='x^2' />
+                                f(x) = <FunctionInput onFunctionChange={(func, value) => {
+                                    this.setState({ func, functionInputValue: value });
+                                }} value={this.state.functionInputValue} placeholder='x^2' />
                             </p>
-                        </td>
-                        <td className='right'>
+                        </div>
+                        <div className='card column right'>
                             Vector field:
                             <VectorFieldSelector selected={this.state.selectedVectorFieldName} onSelect={(selectedOption, vectorField) => {
                                 this.setState({ selectedVectorFieldName: selectedOption, selectedVectorField: vectorField });
                             }} />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td className='copy' colSpan={3}>
-                            <small>Copyright 2018 Raffa Levy</small> - (<R>{this.state.xa}</R>,<R>{this.state.ya}</R>)
-                        </td>
-                    </tr>
-                </tbody></table></div>
+                        </div>
+                </div>
+                <footer className='card copy'>
+                    <small>Copyright 2018 Raffa Levy</small> - (<R>{this.state.xa}</R>,<R>{this.state.ya}</R>)
+                </footer>
             </React.Fragment>
         );
+    }
+
+    /**
+     * Save the state to local storage when the component is updated
+     */
+    componentDidUpdate() {
+        localStorage.setItem('indexState', JSON.stringify(this.state));
     }
 
     /**
@@ -359,6 +383,11 @@ interface IndexState {
      * Whether the mouse is in the Plotter
      */
     mouseIn: boolean;
+
+    /**
+     * The value of the function input field
+     */
+    functionInputValue: string
 
     /**
      * The function being rendered

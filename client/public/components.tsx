@@ -85,11 +85,11 @@ export class NumericalControl extends React.Component<NumericalControlProps> {
                 return;
             }
             this.props.onChange(parsedValue);
-        // } else if (value == '') {
-        //     this.props.onChange(NaN);
-        // } else if (this.props.allowNegative != false && value == '-') {
-        //     this.props.onChange(NaN);
-        // }
+            // } else if (value == '') {
+            //     this.props.onChange(NaN);
+            // } else if (this.props.allowNegative != false && value == '-') {
+            //     this.props.onChange(NaN);
+            // }
         } else {
             this.props.onChange(NaN);
         }
@@ -134,7 +134,7 @@ export class ToolSelector extends Component<ToolSelectorProps> {
             <div>
                 Tools:
 
-                <button onClick={() => this.props.onToolChosen(Tool.Point)} className={sel == Tool.Point ? 'sel' : ''} style={{marginLeft: '10px'}}>POINT</button>
+                <button onClick={() => this.props.onToolChosen(Tool.Point)} className={sel == Tool.Point ? 'sel' : ''} style={{ marginLeft: '10px' }}>POINT</button>
                 <button onClick={() => this.props.onToolChosen(Tool.Remove)} className={sel == Tool.Remove ? 'sel' : ''}>REMOVE</button>
 
             </div>
@@ -168,7 +168,7 @@ export enum Tool {
 /**
  * An input for functions
  */
-export class FunctionInput extends Component<FunctionInputProps, FunctionInputState> {
+export class FunctionInput extends Component<FunctionInputProps> {
 
     /**
      * Create a new FunctionInput component
@@ -176,9 +176,7 @@ export class FunctionInput extends Component<FunctionInputProps, FunctionInputSt
     constructor(props: FunctionInputProps) {
         super(props);
 
-        this.state = {
-            value: ''
-        }
+        this.onValueChange(props.value);
     }
 
     /**
@@ -187,8 +185,13 @@ export class FunctionInput extends Component<FunctionInputProps, FunctionInputSt
     render() {
         return (
             <input type='text'
-                value={this.state.value}
-                onInput={this.onValueChange.bind(this)}
+                value={this.props.value}
+                onChange={(event) => {
+                    // Get the value of the text input
+                    const value = (event.target as HTMLInputElement).value;
+
+                    this.onValueChange(value)
+                }}
                 placeholder={this.props.placeholder || ''} />
         )
     }
@@ -196,9 +199,8 @@ export class FunctionInput extends Component<FunctionInputProps, FunctionInputSt
     /**
      * Called when the value of the text input is changed
      */
-    onValueChange(event: Event) {
-        // Get the value of the text input
-        const value = (event.target as HTMLInputElement).value;
+    onValueChange(value: string) {
+
 
         // Handle parsing and arithmetic errors
         try {
@@ -211,14 +213,11 @@ export class FunctionInput extends Component<FunctionInputProps, FunctionInputSt
             // Return the function
             this.props.onFunctionChange((x) => {
                 return compiled.eval({ x });
-            });
+            }, value);
         } catch (e) {
             // If there's an error, don't return a function.
-            this.props.onFunctionChange(null);
+            this.props.onFunctionChange(null, value);
         }
-
-        // Update the state for the new field value
-        this.setState({ value });
     }
 }
 
@@ -226,23 +225,19 @@ export class FunctionInput extends Component<FunctionInputProps, FunctionInputSt
  * Props for the FunctionInput
  */
 export interface FunctionInputProps {
+
+    /**
+     * The value of the text input
+     */
+    value: string
+
     /**
      * Called when the function is changed
      */
-    onFunctionChange: (func: (x: number) => number) => void
+    onFunctionChange: (func: (x: number) => number, value: string) => void
 
     /**
      * Placeholder text for the input
      */
     placeholder?: string;
-}
-
-/**
- * State for the FunctionInput
- */
-export interface FunctionInputState {
-    /**
-     * The value of the text input
-     */
-    value: string
 }

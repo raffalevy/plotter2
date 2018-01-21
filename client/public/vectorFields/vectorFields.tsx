@@ -83,12 +83,21 @@ const VECTOR_FIELD_OPTIONS: { [index: string]: VectorField2D } = {
     'ELECTRIC MONOPOLE': pointCharge(.5, .5, 1.2),
     'EQUAL ELECTRIC DIPOLE': VectorField2D.add(pointCharge(-1, .5, .6), pointCharge(2, -.1, -.6)),
     'UNEQUAL ELECTRIC DIPOLE': VectorField2D.add(pointCharge(-.8, .3, -.5), pointCharge(2, -.1, 1.1)),
+    'CIRCULAR FIELD': (x, y) => new Vector2D(y, -x)
 }
 
 /**
  * A component for selecting a vector field to display
  */
 export class VectorFieldSelector extends Component<VectorFieldSelectorProps> {
+
+    constructor(props: VectorFieldSelectorProps) {
+        super(props);
+
+        const selected = (VECTOR_FIELD_OPTIONS[props.selected] !== undefined) ? props.selected : 'NONE';
+        props.onSelect(selected, VECTOR_FIELD_OPTIONS[selected]);
+    }
+
     render() {
 
         const selected = (VECTOR_FIELD_OPTIONS[this.props.selected] !== undefined) ? this.props.selected : 'NONE';
@@ -103,7 +112,7 @@ export class VectorFieldSelector extends Component<VectorFieldSelectorProps> {
                         } else {
                             className = css.selectorItem;
                         }
-                        return <li className={className} onClick={() => this.props.onSelect(option, VECTOR_FIELD_OPTIONS[option])} >{option}</li>
+                        return <li key={option} className={className} onClick={() => this.props.onSelect(option, VECTOR_FIELD_OPTIONS[option])} >{option}</li>
                     })}
                 </ul>
             </div>

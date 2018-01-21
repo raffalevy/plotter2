@@ -3,6 +3,7 @@
 * {
     font-family: Inconsolata, sans-serif;
     font-size: 14pt;
+    box-sizing: border-box;
 }
 
 body {
@@ -56,11 +57,7 @@ input:focus {
     outline: none;
 }
 
-table {
-    border-spacing: 10px;
-}
-
-td {
+.card {
     border-style: none;
     border-radius: 5px;
     box-shadow: 0 0 3px grey;
@@ -68,8 +65,33 @@ td {
     padding: 10px;
 }
 
+.column {
+    display: table-cell;
+}
+
+@media only screen and (max-width: 600px) {
+    .column { 
+        margin-bottom: 10px;
+        display: block;
+        width: 100%;
+    }
+}
+
+.row {
+    display: table;
+    width: 100%;
+    border-spacing: 10px;
+}
+
 .left {
     background-color: #9C27B0;
+    width: 5px;
+}
+
+@media only screen and (max-width: 600px) {
+    .left { 
+        width: 100%;
+    }
 }
 
 .center {
@@ -115,11 +137,6 @@ nav {
     left: 10px;
     color: white;
     font-size: 36pt;
-}
-
-#main {
-    position: relative;
-    top: 0;
 }
 
 small {
