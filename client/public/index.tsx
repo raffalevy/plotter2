@@ -1,30 +1,18 @@
+/**
+ * @license MIT
+ * 
+ * Entry point for index.html
+ */
+
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
 import { Plotter, Point2D } from './plotter/Plotter';
-import { Axes, Point, ParametricFunction, Custom, POINT_RADIUS } from './plotter/PlotterComponents';
+import { Axes, Point, ParametricFunction, Custom, POINT_RADIUS, Style } from './plotter/PlotterComponents';
 import * as PlotterComponents from './plotter/PlotterComponents';
-import { R } from './plotter2';
-import { NumericalControl, ToolSelector, Tool, FunctionInput } from './Components';
+import { R, NumericalControl, ToolSelector, Tool, FunctionInput } from './Components';
 import { CoordinateSystem } from './plotter/CoordinateSystem';
-
-/**
- * Style for the left half of the table
- */
-const LEFT_TD_STYLE = {
-    verticalAlign: 'top',
-    padding: '10px',
-    backgroundColor: '#666666'
-}
-
-/**
- * Style for the right half of the table
- */
-const RIGHT_TD_STYLE = {
-    verticalAlign: 'top',
-    padding: '10px',
-    backgroundColor: '#EEEEEE'
-}
+import { VectorFieldSelector, VectorField2D, VectorField } from './vectorFields/vectorFields';
 
 /**
  * How tolerant the remove tool is
@@ -58,10 +46,15 @@ class Index extends React.Component<IndexProps, IndexState> {
             width: 500,
             height: 500,
             unit: 20,
+            centerX: 0,
+            centerY: 0,
             tool: Tool.Point,
             points: [],
             mouseIn: false,
-            func: null
+            func: null,
+            selectedVectorFieldName: '',
+            selectedVectorField: null,
+            lengthFactor: 0
         }
     }
 
@@ -75,64 +68,101 @@ class Index extends React.Component<IndexProps, IndexState> {
 
         // Render a plotter
         return (
-            <table><tbody><tr>
-                <td style={LEFT_TD_STYLE}>
-                    <p>
-                        <Plotter border={true}
-                            width={this.state.width}
-                            height={this.state.height}
-                            unit={this.state.unit}
-                            onMouseMove={this.onMouseMove.bind(this)}
-                            onClick={this.onClick.bind(this)}
-                            onMouseLeave={this.onMouseLeave.bind(this)}>
-                            <Axes />
-                            {pointsToRender}
-                            <Custom draw={this.drawCursor.bind(this)} />
-                            {this.state.func ?
-                                <PlotterComponents.Function func={this.state.func} /> :
-                                false}
-                        </Plotter>
-                    </p>
-                </td>
-                <td style={RIGHT_TD_STYLE}>
-                    <p>
-                        Height: <NumericalControl value={this.state.height}
-                            allowNegative={false}
-                            onChange={(value) => {
-                                this.setState({ height: value });
+            <React.Fragment>
+                <nav><span className='navText'>Plotter2</span></nav>
+                <div id='main'><table><tbody>
+                    <tr>
+                        <td className='left'>
+                            <p>
+                                <Plotter
+                                    width={this.state.width} height={this.state.height}
+                                    unit={this.state.unit}
+                                    centerX={this.state.centerX} centerY={this.state.centerY}
+                                    onMouseMove={this.onMouseMove.bind(this)}
+                                    onClick={this.onClick.bind(this)}
+                                    onMouseLeave={this.onMouseLeave.bind(this)}>
+                                    <Axes />
+                                    <Style stroke='#E040FB' lineWidth={1.5}>
+                                        {this.state.selectedVectorField ?
+                                            <VectorField field={this.state.selectedVectorField} lengthFactor={this.state.lengthFactor} /> :
+                                            false
+                                        }
+                                    </Style>
+                                    <Style stroke='#AB47BC' lineWidth={5}>
+                                        {this.state.func ?
+                                            <PlotterComponents.Function func={this.state.func} /> :
+                                            false}
+                                    </Style>
+                                    {pointsToRender}
+                                    <Custom draw={this.drawCursor.bind(this)} />
+                                </Plotter>
+                            </p>
+                        </td>
+                        <td className='center'>
+                            <p>
+                                Height: <NumericalControl value={this.state.height}
+                                    allowNegative={false}
+                                    onChange={(value) => {
+                                        this.setState({ height: value });
+                                    }} />
+                            </p>
+                            <p>
+                                Unit: <NumericalControl value={this.state.unit}
+                                    allowNegative={false}
+                                    onChange={(value) => {
+                                        this.setState({ unit: value });
+                                    }} />
+                            </p>
+                            <p>
+                                Length factor: <NumericalControl value={this.state.lengthFactor}
+                                    allowNegative={false}
+                                    onChange={(value) => {
+                                        this.setState({ lengthFactor: value });
+                                    }} />
+                            </p>
+                            <hr />
+                            <p>
+                                Center X: <NumericalControl value={this.state.centerX}
+                                    onChange={(value) => {
+                                        this.setState({ centerX: value });
+                                    }} />
+                            </p>
+                            <p>
+                                Center Y: <NumericalControl value={this.state.centerY}
+                                    onChange={(value) => {
+                                        this.setState({ centerY: value });
+                                    }} />
+                            </p>
+                            <hr />
+                            <ToolSelector onToolChosen={this.onToolChosen.bind(this)} tool={this.state.tool} />
+                            <hr />
+                            <p>
+                                <button onClick={this.onClearAllPoints.bind(this)}>CLEAR ALL POINTS</button>
+                            </p>
+                            <hr />
+                            <p>
+                                Plot function:
+                            </p>
+                            <p>
+                                f(x) = <FunctionInput onFunctionChange={(func) => {
+                                    this.setState({ func });
+                                }} placeholder='x^2' />
+                            </p>
+                        </td>
+                        <td className='right'>
+                            Vector field:
+                            <VectorFieldSelector selected={this.state.selectedVectorFieldName} onSelect={(selectedOption, vectorField) => {
+                                this.setState({ selectedVectorFieldName: selectedOption, selectedVectorField: vectorField });
                             }} />
-                    </p>
-                    <p>
-                        Unit: <NumericalControl value={this.state.unit}
-                            allowNegative={false}
-                            onChange={(value) => {
-                                this.setState({ unit: value });
-                            }} />
-                    </p>
-                    <hr />
-                    <p>
-                        Cursor X: <R>{this.state.xa}</R>
-                    </p>
-                    <p>
-                        Cursor Y: <R>{this.state.ya}</R>
-                    </p>
-                    <hr />
-                    <ToolSelector onToolChosen={this.onToolChosen.bind(this)} tool={this.state.tool} />
-                    <hr />
-                    <p>
-                        <button onClick={this.onClearAllPoints.bind(this)}>Clear all points</button>
-                    </p>
-                    <hr />
-                    <p>
-                        Plot function:
-                    </p>
-                    <p>
-                        f(x) = <FunctionInput onFunctionChange={(func) => {
-                            this.setState({ func });
-                        }} />
-                    </p>
-                </td>
-            </tr></tbody></table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td className='copy' colSpan={3}>
+                            <small>Copyright 2018 Raffa Levy</small> - (<R>{this.state.xa}</R>,<R>{this.state.ya}</R>)
+                        </td>
+                    </tr>
+                </tbody></table></div>
+            </React.Fragment>
         );
     }
 
@@ -158,10 +188,10 @@ class Index extends React.Component<IndexProps, IndexState> {
 
             const arrayCopy = this.state.points.slice();
 
-            arrayCopy.forEach(point => point.color = '#000000');
+            arrayCopy.forEach(point => point.color = '#4A148C');
 
             if (cs.scale(Math.sqrt((closest.x - x) ** 2 + (closest.y - y) ** 2)) <= POINT_RADIUS * REMOVE_TOLERANCE) {
-                arrayCopy[closestIndex] = { x: closest.x, y: closest.y, color: '#0000FF' }
+                arrayCopy[closestIndex] = { x: closest.x, y: closest.y, color: '#E91E63' }
             }
 
             this.setState({ xa: x, ya: y, mouseIn: true, points: arrayCopy });
@@ -205,7 +235,7 @@ class Index extends React.Component<IndexProps, IndexState> {
         switch (this.state.tool) {
             case Tool.Point:
                 // If the point tool is selected, add a point at the location of the click
-                this.setState({ points: this.state.points.concat({ x, y, color: '#000000' }) });
+                this.setState({ points: this.state.points.concat({ x, y, color: '#4A148C' }) });
                 break;
             case Tool.Remove:
                 // If the remove tool is selected and a point is clicked, remove that point
@@ -244,16 +274,22 @@ class Index extends React.Component<IndexProps, IndexState> {
         switch (this.state.tool) {
             case Tool.Point:
                 // If point is selected, draw a point.
+
+                ctx.save();
+                ctx.fillStyle = '#E91E63'
+
                 ctx.beginPath();
                 ctx.arc(cx, cy, POINT_RADIUS, 0, 2 * Math.PI);
                 ctx.fill();
 
+                ctx.restore();
+
                 break;
             case Tool.Remove:
-                // If remove is slected, draw a red X.
+                // If remove is slected, draw an X.
                 ctx.save();
 
-                ctx.strokeStyle = '#FF0000';
+                ctx.strokeStyle = '#AD1457';
                 ctx.lineWidth = 3;
 
                 ctx.beginPath();
@@ -306,6 +342,9 @@ interface IndexState {
      */
     unit: number
 
+    centerX: number
+    centerY: number
+
     /**
      * The selected tool
      */
@@ -325,6 +364,18 @@ interface IndexState {
      * The function being rendered
      */
     func: (x: number) => number
+
+    /**
+     * The name of the selected vector field
+     */
+    selectedVectorFieldName: string
+
+    /**
+     * The selected vector field
+     */
+    selectedVectorField: VectorField2D
+
+    lengthFactor: number
 }
 
 /**

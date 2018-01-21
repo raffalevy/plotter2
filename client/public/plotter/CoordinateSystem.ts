@@ -26,8 +26,10 @@ export class CoordinateSystem {
      * @param height The height of the viewport
      * @param unit The number of pixels which corresponds to one unit in plot coordinates
      */
-    static centeredCoordinateSystem(width: number, height: number, unit: number) : CoordinateSystem {
-        return new CoordinateSystem(width / 2, height / 2, unit);
+    static centeredCoordinateSystem(centerX: number, centerY: number, width: number, height: number, unit: number) : CoordinateSystem {
+        const cX = (typeof centerX == 'number' && !isNaN(centerX - centerX)) ? centerX : 0;
+        const cY = (typeof centerY == 'number' && !isNaN(centerY - centerY)) ? centerY : 0;
+        return new CoordinateSystem(width / 2 - cX * unit, height / 2 + cY * unit, unit);
     }
 
     /**

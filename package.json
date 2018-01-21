@@ -7,18 +7,27 @@
     "build": "node node_modules/webpack/bin/webpack.js",
     "watch": "node node_modules/webpack/bin/webpack.js --watch"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/raffalevy/plotter2.git"
+  },
+  "license": "MIT",
   "author": "Raffa Levy",
   "dependencies": {
     "@types/express": "^4.11.0",
     "@types/mathjs": "0.0.37",
+    "@types/prop-types": "^15.5.2",
     "@types/react": "^16.0.34",
     "@types/react-dom": "^16.0.3",
     "express": "^4.16.2",
     "mathjs": "^3.20.1",
+    "prop-types": "^15.6.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0"
   },
   "devDependencies": {
+    "css-loader": "^0.28.9",
+    "style-loader": "^0.19.1",
     "ts-loader": "^3.2.0",
     "typescript": "^2.6.2",
     "webpack": "^3.10.0"

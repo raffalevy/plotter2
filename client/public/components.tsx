@@ -4,6 +4,21 @@ import { Component } from 'react';
 import * as mathjs from 'mathjs';
 
 /**
+ * Component for interactive text
+ */
+
+export class R extends Component {
+    render() {
+        return (
+            <span style={{
+                borderBottom: '1px dashed #999',
+                color: '#9C27B0'
+            }}>{this.props.children}</span>
+        );
+    }
+}
+
+/**
  * A form field for entering numbers
  */
 export class NumericalControl extends React.Component<NumericalControlProps> {
@@ -11,7 +26,12 @@ export class NumericalControl extends React.Component<NumericalControlProps> {
     /**
      * The last string contained in the text box
      */
-    private lastValue: string = '';
+    private lastValue: string;
+
+    constructor(props: NumericalControlProps) {
+        super(props);
+        this.lastValue = props.value.toString();
+    }
 
     /**
      * Render the NumericalControl to the DOM
@@ -20,15 +40,23 @@ export class NumericalControl extends React.Component<NumericalControlProps> {
 
         let inputValue;
 
-        if (isNaN(this.props.value)) {
-            inputValue = this.lastValue;
-        } else {
-            inputValue = this.props.value;
-        }
+        // if (isNaN(this.props.value)) {
+        //     inputValue = this.lastValue;
+        // } else {
+        //     inputValue = this.props.value;
+        // }
+        inputValue = this.lastValue;
 
         return (
             <input type='text' value={inputValue} onChange={this.onChange.bind(this)} />
         )
+    }
+
+    componentWillReceiveProps(nextProps: NumericalControlProps) {
+        if (nextProps.value !== parseFloat(this.lastValue) && !(isNaN(nextProps.value) && isNaN(parseFloat(this.lastValue)))) {
+            this.lastValue = nextProps.value.toString();
+            this.forceUpdate();
+        }
     }
 
     /**
@@ -45,11 +73,11 @@ export class NumericalControl extends React.Component<NumericalControlProps> {
         // Parse the value as a number
         const parsedValue = parseFloat(value);
 
-        // Handle a trailing decimal point
-        if (value.charAt(value.length - 1) == '.') {
-            this.props.onChange(NaN);
-            return;
-        }
+        // // Handle a trailing decimal point
+        // if (value.charAt(value.length - 1) == '.') {
+        //     this.props.onChange(NaN);
+        //     return;
+        // }
 
         // Check if the number could be parsed
         if (!isNaN(parsedValue)) {
@@ -57,9 +85,12 @@ export class NumericalControl extends React.Component<NumericalControlProps> {
                 return;
             }
             this.props.onChange(parsedValue);
-        } else if (value == '') {
-            this.props.onChange(NaN);
-        } else if (this.props.allowNegative != false && value == '-') {
+        // } else if (value == '') {
+        //     this.props.onChange(NaN);
+        // } else if (this.props.allowNegative != false && value == '-') {
+        //     this.props.onChange(NaN);
+        // }
+        } else {
             this.props.onChange(NaN);
         }
 
@@ -96,21 +127,16 @@ export class ToolSelector extends Component<ToolSelectorProps> {
      */
     render() {
 
-        // Style for the selected tool button
-        const selectedStyle = {
-            border: '2px solid red'
-        }
-
         // Get the current selected tool
         const sel = this.props.tool;
 
         return (
             <div>
-                <p>Tools:</p>
-                <p>
-                    <button onClick={() => this.props.onToolChosen(Tool.Point)} style={sel == Tool.Point ? selectedStyle : {}}>Point</button>
-                    <button onClick={() => this.props.onToolChosen(Tool.Remove)} style={sel == Tool.Remove ? selectedStyle : {}}>Remove</button>
-                </p>
+                Tools:
+
+                <button onClick={() => this.props.onToolChosen(Tool.Point)} className={sel == Tool.Point ? 'sel' : ''} style={{marginLeft: '10px'}}>POINT</button>
+                <button onClick={() => this.props.onToolChosen(Tool.Remove)} className={sel == Tool.Remove ? 'sel' : ''}>REMOVE</button>
+
             </div>
         )
     }
@@ -160,7 +186,10 @@ export class FunctionInput extends Component<FunctionInputProps, FunctionInputSt
      */
     render() {
         return (
-            <input type='text' value={this.state.value} onInput={this.onValueChange.bind(this)} />
+            <input type='text'
+                value={this.state.value}
+                onInput={this.onValueChange.bind(this)}
+                placeholder={this.props.placeholder || ''} />
         )
     }
 
@@ -201,6 +230,11 @@ export interface FunctionInputProps {
      * Called when the function is changed
      */
     onFunctionChange: (func: (x: number) => number) => void
+
+    /**
+     * Placeholder text for the input
+     */
+    placeholder?: string;
 }
 
 /**

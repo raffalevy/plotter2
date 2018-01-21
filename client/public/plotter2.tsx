@@ -1,3 +1,10 @@
+/**
+ * @license MIT
+ * 
+ * Entry point for the application
+ * Copyright 2018 Raffa Levy - Licensed under the MIT license.
+ */
+
 import * as React from 'react';
 import { Component } from 'react';
 
@@ -12,21 +19,6 @@ const LOG_ENABLED = true;
 export function log(message: string) {
     if (LOG_ENABLED) {
         console.log(message);
-    }
-}
-
-/**
- * Component for interactive text (simply applies the .reactive class)
- */
-
-export class R extends Component {
-    render() {
-        return (
-            <span style={{
-                borderBottom: '1px dashed #999',
-                color: '#0000FF'
-            }}>{this.props.children}</span>
-        );
     }
 }
 
