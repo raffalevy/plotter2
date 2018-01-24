@@ -1,0 +1,34 @@
+.container {
+    padding: 5px;
+    border: 1px solid gray;
+    border-radius: 5px;
+    background-color: #CCCCCC;
+}
+
+.plusButton, .minusButton {
+    margin: 5px;
+    border-style: none;
+    border-radius: 5px;
+    width: 2em;
+    height: 2em;
+    font-size: 20pt;
+    cursor: pointer;
+}
+
+.plusButton:active, .minusButton:active {
+    background-color: white;
+    color: black;
+}
+
+.plusButton {
+    background-color: red;
+}
+
+.minusButton {
+    background-color: blue;
+    color: white;
+}
+
+.selected {
+    border: 3px solid yellow;
+}

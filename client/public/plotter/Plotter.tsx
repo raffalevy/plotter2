@@ -68,7 +68,6 @@ export class Plotter extends Component<PlotterProps> {
         const canvasStyle: any = {
             width,
             height,
-            cursor: 'none',
             backgroundColor: '#FFFFFF'
         };
 

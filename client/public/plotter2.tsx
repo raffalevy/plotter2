@@ -9,6 +9,7 @@ import * as React from 'react';
 import { Component } from 'react';
 
 import { index } from './index';
+import { charges } from './charges/charges';
 
 const LOG_ENABLED = true;
 
@@ -24,5 +25,5 @@ export function log(message: string) {
 
 // Add scripts to the global window object
 (window as any).plotter2 = {
-    index
+    index, charges
 };

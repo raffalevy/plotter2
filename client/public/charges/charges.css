@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto');
+
+* {
+    font-family: Roboto, sans-serif;
+    box-sizing: border-box;
+}
+
+body {
+    position: relative;
+    margin: 0;
+}
+
+.plotterDiv {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.optionsDiv {
+    position: absolute;
+    right: 5%;
+    bottom: 5%;
+}
+
+.shadowDiv {
+    box-shadow: 0 0 10px grey;
+    border-radius: 5px;
+    transition: box-shadow .4s;
+    float: left;
+}
+
+.shadowDiv:hover {
+    box-shadow: 0 0 20px grey;
+}
+
+canvas {
+    cursor: normal;
+}
+
+.resetButton {
+    composes: shadowDiv;
+    margin-left: 10pt;
+    border: 1px solid grey;
+    border-radius: 5px;
+    font-size: 14pt;
+    padding: 1em;
+}

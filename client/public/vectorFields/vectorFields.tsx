@@ -138,7 +138,7 @@ export interface VectorFieldSelectorProps {
 /**
  * Draw the given vector at the given coordinates
  */
-function drawVector(ctx: CanvasRenderingContext2D, cs: CoordinateSystem, vector: Vector2D, x: number, y: number, lengthFactor: number) {
+function drawVector(ctx: CanvasRenderingContext2D, cs: CoordinateSystem, vector: Vector2D, x: number, y: number, lengthFactor: number, transparency?: boolean) {
     const scaled = lengthFactor ? vector.times(1 / lengthFactor) : vector.times(FIELD_DENSITY / vector.magnitude() / cs.unit);
 
     ctx.beginPath();
@@ -146,7 +146,18 @@ function drawVector(ctx: CanvasRenderingContext2D, cs: CoordinateSystem, vector:
     ctx.moveTo(cs.x(x), cs.y(y));
     ctx.lineTo(cs.x(x + scaled.x), cs.y(y + scaled.y));
 
-    ctx.stroke();
+    if (transparency) {
+        ctx.save();
+        let colorVal = vector.magnitude() * 3;
+        if (colorVal > 255) {
+            colorVal = 255;
+        }
+        ctx.strokeStyle = `rgba(0,0,0,${colorVal})`;
+        ctx.stroke();
+        ctx.restore();
+    } else {
+        ctx.stroke();
+    }
 }
 
 /**
@@ -161,7 +172,7 @@ export class VectorField extends PlotterChild<VectorFieldProps> {
                 const x = cs.plotX(screenX);
                 const y = cs.plotY(screenY);
 
-                drawVector(ctx, cs, field(x, y), x, y, this.props.lengthFactor);
+                drawVector(ctx, cs, field(x, y), x, y, this.props.lengthFactor, this.props.transparency);
             }
         }
     }
@@ -173,4 +184,5 @@ export class VectorField extends PlotterChild<VectorFieldProps> {
 export interface VectorFieldProps {
     field: VectorField2D
     lengthFactor: number;
+    transparency?: boolean;
 }

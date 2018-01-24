@@ -112,6 +112,7 @@ canvas {
     border-radius: 5px;
     box-shadow: 0 0 7px black;
     transition: box-shadow .25s;
+    cursor: none;
 }
 
 canvas:hover {
