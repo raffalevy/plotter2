@@ -248,6 +248,7 @@ export interface Point2D {
      */
     y: number
 }
+
 export namespace Point2D {
     /**
      * Calculate the distance between two points

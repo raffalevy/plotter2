@@ -99,6 +99,7 @@ class Index extends React.Component<IndexProps, IndexState> {
                                     onClick={this.onClick.bind(this)}
                                     onMouseLeave={this.onMouseLeave.bind(this)}>
                                     <Axes />
+                                    <Point x={0} y={3} />
                                     <Style stroke='#E040FB' lineWidth={1.5}>
                                         {this.state.selectedVectorField ?
                                             <VectorField field={this.state.selectedVectorField} lengthFactor={this.state.lengthFactor} /> :
