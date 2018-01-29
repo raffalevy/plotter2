@@ -4,7 +4,7 @@ import * as React from "react";
 import { Plotter, Point2D } from "../plotter/Plotter";
 import { Axes, Point } from "../plotter/PlotterComponents";
 import { VectorField2D, Vector2D, VectorField } from "../vectorFields/vectorFields";
-import { pointCharge } from "../vectorFields/electric";
+import { magneticPointField, electricLineField, electricPointField } from "../vectorFields/electric";
 import { ChargeSelector, ChargeSelectorCharge } from "./ChargeSelector/ChargeSelector";
 
 const css = require('./charges.css');
@@ -88,7 +88,7 @@ class ChargesRoot extends Component<{}, ChargesRootState> {
     }
 
     calculateField(): VectorField2D {
-        const field = this.state.magnetic ? coolCircleThing : pointCharge;
+        const field = this.state.magnetic ? magneticPointField : electricPointField;
         return (x, y) => {
             let vec = new Vector2D(0, 0);
 
@@ -97,6 +97,9 @@ class ChargesRoot extends Component<{}, ChargesRootState> {
             });
 
             vec = vec.plus(field(this.state.mouseX, this.state.mouseY, this.state.inputCharge)(x, y));
+            // const mX = this.state.mouseX;
+            // const mY = this.state.mouseY;
+            // vec = vec.plus(electricLineField(mX, mY - 10, mX, mY + 10, this.state.inputCharge * 10, 100)(x,y));
 
             return vec;
         }
@@ -116,11 +119,4 @@ interface ChargesRootState {
 interface PointCharge {
     point: Point2D
     charge: number;
-}
-
-function coolCircleThing(x: number, y: number, charge: number) : VectorField2D {
-    return (xa: number, ya: number) => {
-        const distance = Point2D.distance({ x, y }, { x: xa, y: ya });
-        return new Vector2D(y - ya, xa - x).times(charge).times(1 / distance ** 3);
-    }
 }

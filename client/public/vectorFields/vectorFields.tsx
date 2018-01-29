@@ -7,11 +7,11 @@ import * as React from "react";
 import { Component } from "react";
 import { PlotterChild } from "../plotter/PlotterComponents";
 import { CoordinateSystem } from "../plotter/CoordinateSystem";
-import { pointCharge } from "./electric";
+import { magneticPointField } from "./electric";
 
 const css = require('./vectorFields.css');
 
-const FIELD_DENSITY = 10;
+const FIELD_DENSITY = 25;
 
 /**
  * Represents a two-dimensional vector
@@ -80,9 +80,9 @@ export namespace VectorField2D {
 const VECTOR_FIELD_OPTIONS: { [index: string]: VectorField2D } = {
     'NONE': null,
     'UNIFORM FIELD': (x, y) => new Vector2D(1, 1),
-    'ELECTRIC MONOPOLE': pointCharge(.5, .5, 1.2),
-    'EQUAL ELECTRIC DIPOLE': VectorField2D.add(pointCharge(-1, .5, .6), pointCharge(2, -.1, -.6)),
-    'UNEQUAL ELECTRIC DIPOLE': VectorField2D.add(pointCharge(-.8, .3, -.5), pointCharge(2, -.1, 1.1)),
+    'ELECTRIC MONOPOLE': magneticPointField(.5, .5, 1.2),
+    'EQUAL ELECTRIC DIPOLE': VectorField2D.add(magneticPointField(-1, .5, .6), magneticPointField(2, -.1, -.6)),
+    'UNEQUAL ELECTRIC DIPOLE': VectorField2D.add(magneticPointField(-.8, .3, -.5), magneticPointField(2, -.1, 1.1)),
     'CIRCULAR FIELD': (x, y) => new Vector2D(y, -x)
 }
 
@@ -141,11 +141,6 @@ export interface VectorFieldSelectorProps {
 function drawVector(ctx: CanvasRenderingContext2D, cs: CoordinateSystem, vector: Vector2D, x: number, y: number, lengthFactor: number, transparency?: boolean) {
     const scaled = lengthFactor ? vector.times(1 / lengthFactor) : vector.times(FIELD_DENSITY / vector.magnitude() / cs.unit);
 
-    ctx.beginPath();
-
-    ctx.moveTo(cs.x(x), cs.y(y));
-    ctx.lineTo(cs.x(x + scaled.x), cs.y(y + scaled.y));
-
     if (transparency) {
         ctx.save();
         let colorVal = vector.magnitude() * 3;
@@ -153,10 +148,35 @@ function drawVector(ctx: CanvasRenderingContext2D, cs: CoordinateSystem, vector:
             colorVal = 255;
         }
         ctx.strokeStyle = `rgba(0,0,0,${colorVal})`;
-        ctx.stroke();
+    }
+
+    ctx.beginPath();
+
+    ctx.moveTo(cs.x(x), cs.y(y));
+    ctx.lineTo(cs.x(x + scaled.x), cs.y(y + scaled.y));
+
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(cs.x(x + scaled.x), cs.y(y + scaled.y));
+    if (scaled.x > 0) {
+        ctx.lineTo(cs.x(x + scaled.x) - .25 * FIELD_DENSITY, cs.y(y + scaled.y));
+    } else if (scaled.x < 0) {
+        ctx.lineTo(cs.x(x + scaled.x) + .25 * FIELD_DENSITY, cs.y(y + scaled.y));
+    }
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(cs.x(x + scaled.x), cs.y(y + scaled.y));
+    if (scaled.y > 0) {
+        ctx.lineTo(cs.x(x + scaled.x), cs.y(y + scaled.y) + .25 * FIELD_DENSITY);
+    } else if (scaled.x < 0) {
+        ctx.lineTo(cs.x(x + scaled.x), cs.y(y + scaled.y) - .25 * FIELD_DENSITY);
+    }
+    ctx.stroke();
+
+    if (transparency) {
         ctx.restore();
-    } else {
-        ctx.stroke();
     }
 }
 
